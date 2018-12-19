@@ -1,0 +1,5 @@
+# This is a definitions file for all possible values for fields in a given .vhd file done by dany
+# This file is used as an input to our system to define internal definitions for available values of fields
+MAIS - 0 1 2 4
+TYPE - RD RD_WR FIELD WR
+FPGA - G D A B C ABC ABCG
