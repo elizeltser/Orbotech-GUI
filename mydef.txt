@@ -1,5 +1,19 @@
 # This is a definitions file for all possible values for fields in a given .vhd file done by dany
 # This file is used as an input to our system to define internal definitions for available values of fields
+# Use tags to specify ranges of possible values before numbers, constants or other fields
+# 					   Available tags : [<=] 		= less equal 
+#										[>=] 		= greater equal
+#										[<]  		= less then
+#										[>]  		= greater then
+###??? default ???
+#
+# if nothing is specified the value would be self infered
+# Note that we assume the order is the same !
+ADDRESS - [>=] 0 [<] 1024 
 MAIS - 0 1 2 4
+LSB - [>=] 0 [<=] MSB
+MSB - [>=] 0 [<=] 31
 TYPE - RD RD_WR FIELD WR
 FPGA - G D A B C ABC ABCG
+INIT - 0
+#MY_FIELD - ELI MIRA ERAN

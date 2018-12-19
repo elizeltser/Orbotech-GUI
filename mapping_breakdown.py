@@ -1,38 +1,63 @@
 import sys, re, operator
+# Constants, and definitions
 
-# Constants and definitions
-all_possible_fields = ['ADDRESS', 'MAIS', 'LSB', 'MSB', 'TYPE' , 'FPGA', 'INIT']
-
+# Important filenames
+internal_definitions_file = "mydef.txt"
 # The function prints an error message and quits with exit code 1
 def error(message):
     print(message)
     sys.exit(1)
     
 # Load constants and definitions from file
-def LoadConsDefinitions(internal_def_filename,definitions_dict):
+def LoadConstsDefinitions( definitions_dict, possible_fields, constants):
     try:
-        def_file = open(internal_def_filename)
+        def_file = open(internal_definitions_file)
     except:
         error("File open error")
-    #dictionary with field as key and tuple of possible elements as its value.
-    # {}
+    # Construct a dictionary of constants    
+    constants_d = {}
+    for constant in constants:
+        constants_d[ constant[0] ] = constant[2]
     for line in def_file:
         if '#' == line[0]:
             continue
         [field, values_lst] = (line.rstrip("\n")).split(" - ")
-        definitions_dict[field]=tuple(values_lst.split(" "))
+        possible_fields.append(field)
+        definitions_dict[field] = []
+        for value in values_lst.split(" "):
+            try:
+                definitions_dict[field].append( int(value) )
+            except:
+                definitions_dict[field].append( value )
     def_file.close()
-
-
-def IsValidProparties(definitions_dict, prop_to_check,reg_name):
-    # [mais, lsb, msb, type_of_reg, fpga, init]
-    prop_d = {'MAIS':prop_to_check[0],'TYPE':prop_to_check[3],'FPGA':prop_to_check[4],'INIT':prop_to_check[5]}
-    for key in prop_d.keys():
-        if key in definitions_dict.keys():
-            if prop_d[key] not in definitions_dict[key]:
-                error("invalid register field "+ prop_d[key]+ " for register named "+ reg_name)
-        
-        
+    
+def IsValidReg(const_definitions_dict, possible_fields, reg_propartis):
+    # dectionary of available operators
+    ops = {'[>]': operator.gt,
+           '[<]': operator.lt,
+           '[>=]': operator.ge,
+           '[<=]': operator.le,
+           '[!=]': operator.ne}
+    index = 0
+    reg_proparties_d = {}
+    for field in possible_fields:
+        reg_proparties_d[field] = reg_propartis[index]
+        index = index + 1
+    for prop in reg_propartis:
+        possib_prop = const_definitions_dict[possible_fields[reg_propartis.index(prop)]]
+        if prop in possib_prop:
+            continue
+        else:
+            if isinstance(prop,int):
+                tags_to_check = set(possib_prop) & set(ops.keys())
+                for tag in tags_to_check:
+                    index_to_check = 1 + possib_prop.index(tag)
+                    if isinstance(possib_prop[index_to_check],int):
+                        if False == ops[tag](prop,possib_prop[index_to_check]):
+                            print("proparty " + prop + " is wrong!")
+                    if possib_prop[index_to_check] in possible_fields:
+                        if False == ops[tag](prop,reg_proparties_d[possib_prop[index_to_check]]):
+                            print("proparty " + str(prop) + " is wrong!")
 # Check if the file contains all initiations
 def IsValidVHDFile(mappling_filename,correct_initials_filename):
     try:
@@ -81,12 +106,17 @@ def IsValidVHDFile(mappling_filename,correct_initials_filename):
         print("Constants are fine")
 
 def main():
+    # dictionary with field as key and tuple of possible elements as its value.
     const_definitions_dict={}
-    LoadConsDefinitions("mydef.txt", const_definitions_dict)
+    possible_fields = []
+    #should be loaded from the files
+    constants = [("software_version","integer",256),("fpga_time_reg","integer",156)]
+    LoadConstsDefinitions(const_definitions_dict,possible_fields,constants)
     IsValidVHDFile("mapping_package.vhd","mycorrect.txt")
-        # [mais, lsb, msb, type_of_reg, fpga, init]
+    # [mais, lsb, msb, type_of_reg, fpga, init]
     prop_to_check = ['0','0','31','RD','G','0']
-    reg_name = "EliIsAwesome"
-    IsValidProparties(const_definitions_dict,prop_to_check,reg_name)
+    reg = {'DannyWifeProblems':(0,0,1,31,'RD','G',1)}
+    IsValidReg(const_definitions_dict, possible_fields ,reg["DannyWifeProblems"])
+
 if __name__ == '__main__':
     main()
